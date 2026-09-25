@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emagz Apps — Direct App Downloads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #070a14;
+    --panel: #0e1424;
+    --panel-hi: #131b32;
+    --line: #1e2740;
+    --text: #eaeef7;
+    --muted: #8b93ab;
+    --cyan: #46e6d5;
+    --violet: #8f6bf0;
+    --amber: #f0b64c;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height:1.5;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:
+      radial-gradient(600px 400px at 12% -5%, rgba(70,230,213,0.10), transparent 60%),
+      radial-gradient(700px 500px at 105% 10%, rgba(143,107,240,0.14), transparent 60%),
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: auto, auto, 42px 42px, 42px 42px;
+    background-position: 0 0, 0 0, 0 0, 0 0;
+    opacity:1;
+    -webkit-mask-image: radial-gradient(1100px 700px at 50% 0%, black, transparent 78%);
+            mask-image: radial-gradient(1100px 700px at 50% 0%, black, transparent 78%);
+    pointer-events:none;
+    z-index:0;
+  }
+  #bg-canvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:0;
+    pointer-events:none;
+    -webkit-mask-image: radial-gradient(1200px 800px at 50% 0%, black, transparent 82%);
+            mask-image: radial-gradient(1200px 800px at 50% 0%, black, transparent 82%);
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:0 24px; position:relative; z-index:1;}
+
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:28px 0;
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; color:#04070d; font-size:15px;
+  }
+  .brand-name{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:17px; letter-spacing:0.2px;}
+  nav a{color:var(--muted); text-decoration:none; font-size:14px; margin-left:28px; transition:color .2s ease;}
+  nav a:hover{color:var(--text);}
+
+  /* HERO */
+  .hero{
+    padding:64px 0 56px;
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap:48px;
+    align-items:center;
+  }
+  .hero h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(34px, 5vw, 54px);
+    line-height:1.08;
+    letter-spacing:-0.5px;
+    text-shadow:
+      0 0 18px rgba(70,230,213,0.35),
+      0 0 42px rgba(143,107,240,0.22);
+    animation: heroGlow 4.5s ease-in-out infinite;
+  }
+  @keyframes heroGlow{
+    0%, 100%{
+      text-shadow:
+        0 0 18px rgba(70,230,213,0.35),
+        0 0 42px rgba(143,107,240,0.22);
+    }
+    50%{
+      text-shadow:
+        0 0 28px rgba(70,230,213,0.55),
+        0 0 64px rgba(143,107,240,0.38);
+    }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .hero h1{ animation: none; }
+  }
+  .hero h1 span{
+    background: linear-gradient(100deg, var(--cyan), var(--violet));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter: drop-shadow(0 0 24px rgba(143,107,240,0.45));
+  }
+  .hero p{
+    margin-top:18px; color:var(--muted); font-size:16px; max-width:46ch;
+  }
+  .hero-actions{margin-top:30px; display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:14px;
+    padding:13px 22px; border-radius:10px; border:1px solid transparent;
+    cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+    transition: transform .15s ease, border-color .2s ease, background .2s ease;
+  }
+  .btn-primary{ background: linear-gradient(100deg, var(--cyan), var(--violet)); color:#050810;}
+  .btn-primary:hover{ transform: translateY(-1px); }
+  .btn-ghost{ border-color: var(--line); color: var(--text); background: rgba(255,255,255,0.02); }
+  .btn-ghost:hover{ border-color: rgba(255,255,255,0.28); }
+
+  .hero-panel{
+    position:relative;
+    border:1px solid var(--line);
+    background: linear-gradient(180deg, var(--panel-hi), var(--panel));
+    border-radius:18px;
+    padding:26px;
+    font-family:'Space Grotesk', sans-serif;
+  }
+  .hero-panel .term-dots{display:flex; gap:6px; margin-bottom:16px;}
+  .term-dots span{width:9px; height:9px; border-radius:50%; background:var(--line);}
+  .hero-panel .line{color:var(--muted); font-family:monospace; font-size:12.5px; margin:5px 0;}
+  .hero-panel .line b{color:var(--cyan); font-weight:600;}
+  .hero-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:20px; }
+  .hero-stats div{border-top:1px solid var(--line); padding-top:10px;}
+  .hero-stats .num{font-size:20px; font-weight:700;}
+  .hero-stats .lbl{font-size:11.5px; color:var(--muted); font-family:'Inter';}
+
+  /* SECTION HEADER */
+  .section-head{ margin: 72px 0 26px; display:flex; align-items:baseline; justify-content:space-between; gap:20px; flex-wrap:wrap;}
+  .section-head h2{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:26px; }
+  .section-head p{ color:var(--muted); font-size:14px; }
+
+  /* APP GRID */
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap:18px;
+    padding-bottom:60px;
+  }
+  .card{
+    border:1px solid var(--line);
+    background: var(--panel);
+    border-radius:16px;
+    padding:22px;
+    display:flex; flex-direction:column; gap:14px;
+    transition: border-color .2s ease, transform .2s ease;
+    position:relative;
+  }
+  .card:hover{ border-color: rgba(70,230,213,0.35); transform: translateY(-2px); }
+  .card-top{ display:flex; gap:14px; align-items:flex-start; }
+  .icon{
+    width:48px; height:48px; border-radius:12px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk'; font-weight:700; font-size:17px; color:#04070d;
+  }
+  .icon-1{ background: linear-gradient(135deg, var(--cyan), #2b8f83); }
+  .icon-2{ background: linear-gradient(135deg, var(--violet), #533f9c); }
+  .icon-3{ background: linear-gradient(135deg, var(--amber), #a9772e); }
+  .icon-4{ background: linear-gradient(135deg, #6fb1ef, #3a6ea8); }
+
+  .card h3{ font-family:'Space Grotesk'; font-size:17px; font-weight:600; }
+  .card .pkg{ color:var(--muted); font-size:12px; font-family:monospace; margin-top:2px; }
+  .card p.desc{ color:var(--muted); font-size:13.5px; }
+  .meta-row{ display:flex; gap:16px; font-size:12px; color:var(--muted); border-top:1px solid var(--line); padding-top:12px; }
+  .meta-row b{ color:var(--text); font-weight:600; }
+  .card-bottom{ display:flex; gap:10px; margin-top:auto; }
+  .dl-btn{
+    flex:1; text-align:center; padding:11px 14px; border-radius:9px;
+    background: rgba(70,230,213,0.08); border:1px solid rgba(70,230,213,0.28);
+    color: var(--cyan); text-decoration:none; font-size:13.5px; font-weight:600;
+    transition: background .2s ease, border-color .2s ease;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+  }
+  .dl-btn:hover{ background: rgba(70,230,213,0.16); border-color: rgba(70,230,213,0.5); }
+  .badge{
+    position:absolute; top:20px; right:20px;
+    font-size:10.5px; font-weight:600; color:var(--amber);
+    border:1px solid rgba(240,182,76,0.35); background:rgba(240,182,76,0.08);
+    padding:3px 8px; border-radius:20px;
+  }
+
+  /* NOTICE */
+  .notice{
+    border:1px dashed var(--line);
+    border-radius:14px;
+    padding:20px 22px;
+    color:var(--muted);
+    font-size:13.5px;
+    background: rgba(143,107,240,0.04);
+    margin-bottom:50px;
+  }
+  .notice b{ color:var(--text); }
+  .notice code{ font-family:monospace; color:var(--cyan); background:rgba(70,230,213,0.08); padding:1px 6px; border-radius:5px; }
+
+  /* HOW-TO */
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; padding-bottom:70px; }
+  .step{ border:1px solid var(--line); border-radius:14px; padding:20px; background:var(--panel); }
+  .step .n{ font-family:'Space Grotesk'; font-weight:700; font-size:22px; color:var(--cyan); }
+  .step h4{ font-family:'Space Grotesk'; font-size:15px; margin:10px 0 6px; font-weight:600; }
+  .step p{ font-size:13px; color:var(--muted); }
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:26px 0 50px;
+    color:var(--muted);
+    font-size:12.5px;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+
+  @media (max-width:800px){
+    .hero{ grid-template-columns:1fr; }
+    .steps{ grid-template-columns:1fr; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .card, .btn{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">E</div>
+      <div class="brand-name">Emagz Apps</div>
+    </div>
+    <nav>
+      <a href="#apps">Apps</a>
+      <a href="#install">Install guide</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1>Your apps,<br><span>straight from the source.</span></h1>
+      <p>Independently built Android apps, packaged as APKs and hosted on Google Drive. No store review queue, no bloat — just the file, direct to your device.</p>
+      <div class="hero-actions">
+        <a href="#apps" class="btn btn-primary">Browse apps</a>
+        <a href="#install" class="btn btn-ghost">How to install</a>
+      </div>
+    </div>
+    <div class="hero-panel">
+      <div class="term-dots"><span></span><span></span><span></span></div>
+      <div class="line">$ fetch <b>CalamityPh.apk</b></div>
+      <div class="line">source: drive.google.com/uc?id=...</div>
+      <div class="line">verified: <b>emagz apk</b></div>
+      <div class="line">status: <b>ready</b></div>
+      <div class="hero-stats">
+        <div><div class="num">4</div><div class="lbl">apps live</div></div>
+        <div><div class="num">100%</div><div class="lbl">direct links</div></div>
+        <div><div class="num">0</div><div class="lbl">store fees</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-head reveal" id="apps">
+    <h2>Available apps</h2>
+    <p>Tap download to pull the APK straight from Drive.</p>
+  </div>
+
+  <div class="notice reveal">
+    <b>Disclaimer :</b> All apk apps here don't collect user data, no ads, and free to use. All meta data runs on the app- See disclaimer in app splash screens.
+  </div>
+
+  <div class="grid">
+
+    <div class="card reveal">
+      <div class="badge">v1.0</div>
+      <div class="card-top">
+        <div class="icon icon-1">CPh</div>
+        <div>
+          <h3>CalamityPh</h3>
+          <div class="pkg">https://emagz02.github.io/EmagZApps</div>
+        </div>
+      </div>
+      <p class="desc">Tracks Ph calamities in realtime with offline caching and accurate location.</p>
+      <div class="meta-row">
+        <div><b>24.6 MB</b> size</div>
+        <div><b>Android 16+</b> requires</div>
+        <div><b>Sep 2026</b> updated</div>
+      </div>
+      <div class="card-bottom">
+        <a class="dl-btn" href="https://drive.google.com/file/d/1E_SMPS1AvzZxeswth3TVSnGl3Iwpw3Wq/view?usp=sharing" data-href="https://drive.google.com/uc?export=download&id=SAMPLE_FILE_ID_1" data-app="CalamityPh">Download APK</a>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <div class="badge">v1.0</div>
+      <div class="card-top">
+        <div class="icon icon-2">EC</div>
+        <div>
+          <h3>E-Counter</h3>
+          <div class="pkg">https://emagz02.github.io/EmagZApps</div>
+        </div>
+      </div>
+      <p class="desc">Quick-capture and record attendance using AI-with no internet required.</p>
+      <div class="meta-row">
+        <div><b>159.5 MB</b> size</div>
+        <div><b>Android 16+</b> requires</div>
+        <div><b>Sep 2026</b> updated</div>
+      </div>
+      <div class="card-bottom">
+        <a class="dl-btn" href="https://drive.google.com/file/d/1AtrU6itX1OCXKaauY4XQ0laSgD6r75ZN/view?usp=sharing" data-href="https://drive.google.com/uc?export=download&id=SAMPLE_FILE_ID_2" data-app="E-Counter">Download APK</a>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <div class="badge">v1.0 beta</div>
+      <div class="card-top">
+        <div class="icon icon-3">EmP</div>
+        <div>
+          <h3>EMagzPlayer (EMP)</h3>
+          <div class="pkg">https://emagz02.github.io/EmagZApps</div>
+        </div>
+      </div>
+      <p class="desc">Your Music, Your Freedom, Your Choice- features are there at your disposal.</p>
+      <div class="meta-row">
+        <div><b>27.4 MB</b> size</div>
+        <div><b>Android 17+</b> requires</div>
+        <div><b>Sep 2026</b> updated</div>
+      </div>
+      <div class="card-bottom">
+        <a class="dl-btn" href="https://drive.google.com/file/d/1M4LYhTsqpi5QL3N8ah_to4DOW2IVZZcM/view?usp=sharing" data-href="https://drive.google.com/uc?export=download&id=SAMPLE_FILE_ID_3" data-app="EMagzPlayer (EMP)">Download APK</a>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <div class="badge">v1.0</div>
+      <div class="card-top">
+        <div class="icon icon-4">JK</div>
+        <div>
+          <h3>Joke Lang</h3>
+          <div class="pkg">https://emagz02.github.io/EmagZApps</div>
+        </div>
+      </div>
+      <p class="desc">Bring some laughter to your day with jokes and humor, with English and Tagalog jokes.</p>
+      <div class="meta-row">
+        <div><b>15.7 MB</b> size</div>
+        <div><b>Android 16+</b> requires</div>
+        <div><b>Sep 2026</b> updated</div>
+      </div>
+      <div class="card-bottom">
+        <a class="dl-btn" href="https://drive.google.com/file/d/11jspP_Rsaodv_IQsaxsKsq8zcXnBr3PB/view?usp=sharing" data-href="https://drive.google.com/uc?export=download&id=SAMPLE_FILE_ID_4" data-app="Joke Lang">Download APK</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-head reveal" id="install">
+    <h2>Installing an APK</h2>
+    <p>Same three steps, every time.</p>
+  </div>
+
+  <div class="steps">
+    <div class="step reveal">
+      <div class="n">01</div>
+      <h4>Allow unknown sources</h4>
+      <p>In your phone's settings, allow installs from your browser or file manager — Android will prompt you the first time if you skip this.</p>
+    </div>
+    <div class="step reveal">
+      <div class="n">02</div>
+      <h4>Download the file</h4>
+      <p>Tap "Download APK" above. It saves to your Downloads folder like any other file.</p>
+    </div>
+    <div class="step reveal">
+      <div class="n">03</div>
+      <h4>Open and install</h4>
+      <p>Open the downloaded .apk from your notifications or file manager, then confirm the install.</p>
+    </div>
+  </div>
+
+  <footer>
+    <span>Emagz Apps (2026 ) — direct-download mirror, hosted on Google Drive.</span>
+    <span>Built and signed independently.</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var canvas = document.getElementById('bg-canvas');
+  var ctx = canvas.getContext('2d');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var W, H, DPR;
+  var nodes = [];
+  var pulses = [];
+  var bots = [];
+  var digits = [];
+  var dust = [];
+  var streaks = [];
+
+  var CYAN = '70,230,213';
+  var VIOLET = '143,107,240';
+  var AMBER = '240,182,76';
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.clientWidth = window.innerWidth;
+    H = canvas.clientHeight = Math.max(window.innerHeight, document.body.scrollHeight * 0.6);
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    buildScene();
+  }
+
+  // Circuit-board node network -------------------------------------------
+  function buildScene(){
+    var count = Math.max(14, Math.min(34, Math.floor((W * H) / 65000)));
+    nodes = [];
+    for (var i = 0; i < count; i++){
+      nodes.push({
+        x: Math.random() * W,
+        y: Math.random() * H * 0.85,
+        vx: (Math.random() - 0.5) * 0.12,
+        vy: (Math.random() - 0.5) * 0.12,
+        r: 1.4 + Math.random() * 1.6
+      });
+    }
+    // small android-bot glyphs drifting in the background
+    var botCount = Math.max(3, Math.min(7, Math.floor(W / 380)));
+    bots = [];
+    for (var b = 0; b < botCount; b++){
+      bots.push({
+        x: Math.random() * W,
+        y: Math.random() * H * 0.85,
+        s: 10 + Math.random() * 14,
+        drift: (Math.random() - 0.5) * 0.05,
+        phase: Math.random() * Math.PI * 2,
+        color: Math.random() > 0.5 ? CYAN : VIOLET,
+        alpha: 0.10 + Math.random() * 0.10
+      });
+    }
+    // rising binary digits
+    var digitCount = Math.max(10, Math.min(26, Math.floor(W / 70)));
+    digits = [];
+    for (var d = 0; d < digitCount; d++){
+      digits.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        speed: 0.10 + Math.random() * 0.22,
+        char: Math.random() > 0.5 ? '1' : '0',
+        size: 10 + Math.random() * 5,
+        alpha: 0.06 + Math.random() * 0.10,
+        color: Math.random() > 0.3 ? CYAN : VIOLET,
+        flip: 120 + Math.random() * 240,
+        flipT: Math.floor(Math.random() * 240)
+      });
+    }
+    // slow-drifting dust specks for extra depth
+    var dustCount = Math.max(20, Math.min(60, Math.floor((W * H) / 42000)));
+    dust = [];
+    for (var u = 0; u < dustCount; u++){
+      dust.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: 0.5 + Math.random() * 1.1,
+        vx: (Math.random() - 0.5) * 0.06,
+        vy: (Math.random() - 0.5) * 0.06,
+        alpha: 0.15 + Math.random() * 0.25
+      });
+    }
+    pulses = [];
+    streaks = [];
+  }
+
+  function neighborLinks(){
+    var links = [];
+    var maxDist = Math.min(180, W / 6);
+    for (var i = 0; i < nodes.length; i++){
+      for (var j = i + 1; j < nodes.length; j++){
+        var a = nodes[i], b = nodes[j];
+        var dx = a.x - b.x, dy = a.y - b.y;
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < maxDist){
+          links.push({ a: a, b: b, d: dist, max: maxDist });
+        }
+      }
+    }
+    return links;
+  }
+
+  function drawAndroidBot(x, y, s, colorRGB, alpha){
+    // simple android head glyph: dome + two antennae + two eyes
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.strokeStyle = 'rgba(' + colorRGB + ',' + alpha + ')';
+    ctx.fillStyle = 'rgba(' + colorRGB + ',' + (alpha * 0.9) + ')';
+    ctx.lineWidth = 1.1;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, s, Math.PI, 0, false);
+    ctx.lineTo(s, s * 0.55);
+    ctx.lineTo(-s, s * 0.55);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.5, -s * 0.92);
+    ctx.lineTo(-s * 0.72, -s * 1.28);
+    ctx.moveTo(s * 0.5, -s * 0.92);
+    ctx.lineTo(s * 0.72, -s * 1.28);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(-s * 0.35, -s * 0.15, s * 0.08, 0, Math.PI * 2);
+    ctx.arc(s * 0.35, -s * 0.15, s * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  var t = 0;
+  function frame(){
+    t += 1;
+    ctx.clearRect(0, 0, W, H);
+
+    // dust specks
+    for (var du = 0; du < dust.length; du++){
+      var ds = dust[du];
+      if (!reduceMotion){
+        ds.x += ds.vx;
+        ds.y += ds.vy;
+        if (ds.x < 0) ds.x = W;
+        if (ds.x > W) ds.x = 0;
+        if (ds.y < 0) ds.y = H;
+        if (ds.y > H) ds.y = 0;
+      }
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(' + CYAN + ',' + ds.alpha + ')';
+      ctx.arc(ds.x, ds.y, ds.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // rising binary digits
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'center';
+    for (var dg = 0; dg < digits.length; dg++){
+      var dgt = digits[dg];
+      if (!reduceMotion){
+        dgt.y -= dgt.speed;
+        dgt.flipT++;
+        if (dgt.flipT > dgt.flip){
+          dgt.char = dgt.char === '1' ? '0' : '1';
+          dgt.flipT = 0;
+        }
+        if (dgt.y < -20) { dgt.y = H + 20; dgt.x = Math.random() * W; }
+      }
+      ctx.font = dgt.size + 'px monospace';
+      ctx.fillStyle = 'rgba(' + dgt.color + ',' + dgt.alpha + ')';
+      ctx.fillText(dgt.char, dgt.x, dgt.y);
+    }
+
+    // occasional streaking data trail across the sky
+    if (!reduceMotion && t % 95 === 0){
+      streaks.push({
+        x: Math.random() * W * 0.6,
+        y: Math.random() * H * 0.35,
+        len: 90 + Math.random() * 70,
+        angle: 0.5 + Math.random() * 0.3,
+        p: 0,
+        speed: 0.02 + Math.random() * 0.01,
+        color: Math.random() > 0.5 ? CYAN : AMBER
+      });
+    }
+    for (var s = streaks.length - 1; s >= 0; s--){
+      var st = streaks[s];
+      st.p += st.speed;
+      if (st.p >= 1.3){ streaks.splice(s, 1); continue; }
+      var headP = Math.min(st.p, 1);
+      var tailP = Math.max(st.p - 0.35, 0);
+      var hx = st.x + Math.cos(st.angle) * st.len * headP;
+      var hy = st.y + Math.sin(st.angle) * st.len * headP;
+      var tx = st.x + Math.cos(st.angle) * st.len * tailP;
+      var ty = st.y + Math.sin(st.angle) * st.len * tailP;
+      var grad = ctx.createLinearGradient(tx, ty, hx, hy);
+      grad.addColorStop(0, 'rgba(' + st.color + ',0)');
+      grad.addColorStop(1, 'rgba(' + st.color + ',0.55)');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+    }
+
+    // drifting android glyphs
+    for (var b = 0; b < bots.length; b++){
+      var bot = bots[b];
+      if (!reduceMotion){
+        bot.y += bot.drift;
+        bot.x += Math.sin(t * 0.004 + bot.phase) * 0.06;
+        if (bot.y < -40) bot.y = H + 40;
+        if (bot.y > H + 40) bot.y = -40;
+      }
+      drawAndroidBot(bot.x, bot.y, bot.s, bot.color, bot.alpha);
+    }
+
+    // move nodes
+    if (!reduceMotion){
+      for (var i = 0; i < nodes.length; i++){
+        var n = nodes[i];
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > W) n.vx *= -1;
+        if (n.y < 0 || n.y > H * 0.85) n.vy *= -1;
+      }
+    }
+
+    var links = neighborLinks();
+
+    // draw links
+    for (var l = 0; l < links.length; l++){
+      var link = links[l];
+      var op = (1 - link.d / link.max) * 0.35;
+      ctx.strokeStyle = 'rgba(' + CYAN + ',' + op.toFixed(3) + ')';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(link.a.x, link.a.y);
+      ctx.lineTo(link.b.x, link.b.y);
+      ctx.stroke();
+    }
+
+    // occasionally spawn a data pulse traveling along a random link
+    if (!reduceMotion && links.length && t % 40 === 0){
+      var pick = links[Math.floor(Math.random() * links.length)];
+      pulses.push({ a: pick.a, b: pick.b, p: 0, speed: 0.012 + Math.random() * 0.01 });
+    }
+
+    // draw + advance pulses
+    for (var p = pulses.length - 1; p >= 0; p--){
+      var pl = pulses[p];
+      pl.p += pl.speed;
+      if (pl.p >= 1){ pulses.splice(p, 1); continue; }
+      var px = pl.a.x + (pl.b.x - pl.a.x) * pl.p;
+      var py = pl.a.y + (pl.b.y - pl.a.y) * pl.p;
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(' + VIOLET + ',0.9)';
+      ctx.arc(px, py, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(' + VIOLET + ',0.25)';
+      ctx.arc(px, py, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // draw nodes
+    for (var i2 = 0; i2 < nodes.length; i2++){
+      var nn = nodes[i2];
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(' + CYAN + ',0.55)';
+      ctx.arc(nn.x, nn.y, nn.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (!reduceMotion){
+      requestAnimationFrame(frame);
+    }
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(frame);
+  if (reduceMotion){
+    // draw a single static frame so the scene isn't left blank
+    frame();
+  }
+})();
+</script>
+
+</body>
+</html>
